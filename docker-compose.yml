@@ -1,0 +1,12 @@
+version: '2'
+
+services:
+  node:
+    container_name: NodeJS
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ./appcode:/var/www/html
+    ports:
+      - "8090:80"

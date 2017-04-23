@@ -1,0 +1,16 @@
+{
+    "aws" : {
+        "default-region": "eu-west-1", //Set the default region here
+        "credentials": {
+            //AWS Environment name, E.g. Prod, Staging, Dev. If not provided default will be used
+            "staging" : {
+                "key" : "your-aws-staging-key",
+                "secret" : "your-aws-staging-secret",
+            },
+            "prod" : {
+                "key" : "your-aws-prod-key",
+                "secret" : "your-aws-prod-secret"
+            }
+        }
+    }
+}

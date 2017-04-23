@@ -1,0 +1,18 @@
+{
+  "name": "slackapp-ecs-private-ips",
+  "version": "0.0.1",
+  "description": "Node.js app to return live IPs of an ESC, designed to work with a slack app",
+  "author": "Potter Rafed <potter.rafed@worldstores.co.uk>",
+  "main": "src/",
+  "scripts": {
+    "start": "node src/server.js"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.45.0",
+    "config": "^1.25.1",
+    "express": "^4.15.2"
+  },
+  "devDependencies": {
+    "nodemon": "^1.11.0"
+  }
+}
