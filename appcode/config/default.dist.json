@@ -12,5 +12,9 @@
                 "secret" : "your-aws-prod-secret"
             }
         }
+    },
+    "slack-app" : {
+        "clientId": "your-client-id",
+        "clientSecret": "your-client-secret"
     }
 }
