@@ -2,6 +2,7 @@
 
 const express = require('express');
 const appconfig = require('./appconfig.js');
+const commandParams = require('./commandParams.js');
 var EcsIps = require('./EcsIps.js');
 var request = require('request');
 var bodyParser = require('body-parser');
@@ -22,6 +23,7 @@ app.listen(PORT);
 console.log('Running on http://localhost:' + PORT);
 
 app.get('/', function(req, res) {
+
     res.send('Server is working! Path Hit: ' + req.url);
 });
 
@@ -60,23 +62,22 @@ app.get('/oauth', function(req, res) {
 
 app.post('/aws-get-ips', function (req, res) {
 
-    console.log(req.body);
+    var params = commandParams.extractFullyQualifiedParams(req.body.text, req.body.channel_name);
 
     res.header('Content-Type', 'application/json');
     res.send(
         {
-            "text": "Getting Order Broker Staging IP..."
+            "text": "Getting IPs for Cluster: '" +  params.cluster + "', Env:'" + params.env + "', Region: '" + params.region + "'"
         }
     );
 
-    var awsEnv = 'staging';
-    var clusterName = 'order-brokerage';
-    var region = defaultRegion;
+    console.log(" ++++++++++++++++++ Processing request #" + requestNo + " +++++++++++++++++ From user: " + req.body.user_name);
+    console.log(req.body);
+    console.log("Running with settings: " + params.cluster + ", " + params.env + ", " + params.region);
 
-    console.log(" +++++ Processing request #" + requestNo + " ------" );
 
     try {
-        var credentials = appconfig.awsCredentials(awsEnv);
+        var credentials = appconfig.awsCredentials(params.env);
     } catch (ex) {
         console.log(ex.message);
     }
@@ -84,8 +85,8 @@ app.post('/aws-get-ips', function (req, res) {
     var ecsIps = new EcsIps(
         credentials.key,
         credentials.secret,
-        region,
-        clusterName
+        params.region,
+        params.cluster
     );
 
     ecsIps.get().then(function(result) {
@@ -95,7 +96,7 @@ app.post('/aws-get-ips', function (req, res) {
             {
                 json: {
                     "response_type": "in_channel",
-                    "text": "Order Broker Staging is currently running on " + result
+                    "text": "CLUSTER: '" +  params.cluster + "', ENV: '" + params.env + "', REGION: '" + params.region + "' is running on: " + result
                 }
             },
 
@@ -105,7 +106,7 @@ app.post('/aws-get-ips', function (req, res) {
                 }
             }
         );
-        console.log(" ----- Finished request #"+ requestNo + " ------" );
+        console.log(" ------------------- Finished request #"+ requestNo + " ---------------------" );
         requestNo++;
     }).catch(function(reason) {
         request.post(

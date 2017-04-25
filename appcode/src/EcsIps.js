@@ -14,7 +14,6 @@ function getEcsTasksList (ecs) {
                 reject(err.message);
             } else {
                 console.log("Received tasks...");
-                console.log(data);
                 var tasks = data.taskArns;
                 if (tasks.length <= 0) {
                     reject("No running tasks.");
