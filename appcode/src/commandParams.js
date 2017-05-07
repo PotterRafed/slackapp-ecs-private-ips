@@ -3,51 +3,60 @@ const appconfig = require('./appconfig.js');
 const defaultEnv = 'staging';
 const defaultRegion = appconfig.awsDefaultRegion();
 
-function extractFullyQualifiedParams(commandText, defaultCluster) {
+const availableParams = [
+    {
+        'paramName': 'cluster',
+        'fullCommand': '--cluster',
+        'shortCommand': '-c',
+        'required': false,
+        'defaultValue' : ''
+    },
+    {
+        'paramName': 'region',
+        'fullCommand': '--region',
+        'shortCommand': '-r',
+        'required': false,
+        'defaultValue' : defaultRegion
+    },
+    {
+        'paramName': 'env',
+        'fullCommand': '--env',
+        'shortCommand': '-e',
+        'required': false,
+        'defaultValue' : defaultEnv
+    }
+];
 
-    var clusterMatch = commandText.match('--cluster="(.*?)"');
-    var cluster = defaultCluster;
-    if (clusterMatch !== null) {
-        cluster = clusterMatch[1];
-    } else {
-        //Try with a -c
-        clusterMatch = commandText.match('-c="(.*?)"');
-        if (clusterMatch !== null) {
-            cluster = clusterMatch[1];
+function extractParams(commandText, defaultCluster) {
+
+    var returnObject = [];
+    availableParams.forEach(function(param) {
+
+        if (param.paramName === 'cluster') {
+            param.defaultValue = defaultCluster;
         }
-    }
 
-    var regionMatch = commandText.match('--region="(.*?)"');
-    var region = defaultRegion;
-    if (regionMatch !== null) {
-        region = regionMatch[1];
-    } else {
-        //Try with a -c
-        regionMatch = commandText.match('-r="(.*?)"');
-        if (regionMatch !== null) {
-            region = regionMatch[1];
+        var match = commandText.match(param.fullCommand+'="(.*?)"');
+        var value = param.defaultValue;
+        if (match !== null) {
+            value = match[1];
+        } else {
+            //Try with the short command
+            match = commandText.match(param.shortCommand+'="(.*?)"');
+            if (match !== null) {
+                value = match[1];
+            }
         }
-    }
+        param.value = value;
+        var obj = {};
+        obj[param.paramName] = value;
 
-    var envMatch = commandText.match('--env="(.*?)"');
-    var env = defaultEnv;
-    if (envMatch !== null) {
-        env = envMatch[1];
-    } else {
-        //Try with a -c
-        envMatch = commandText.match('-e="(.*?)"');
-        if (envMatch !== null) {
-            env = envMatch[1];
-        }
-    }
+        returnObject.push(obj);
+    });
 
-    return {
-        'cluster' : cluster,
-        'env' : env,
-        'region' : region
-    }
+    return returnObject;
 }
 
 module.exports = {
-    extractFullyQualifiedParams: extractFullyQualifiedParams
+    extractParams: extractParams
 }

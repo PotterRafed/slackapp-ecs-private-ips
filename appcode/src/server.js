@@ -22,7 +22,15 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.listen(PORT);
 console.log('Running on http://localhost:' + PORT);
 
+// var text = '--region="myregion"';
+// var cn = 'hardcoded-channel-name';
+//
+// var params = commandParams.extractParams(text, cn);
+//
+// console.log(params);
+
 app.get('/', function(req, res) {
+
 
     res.send('Server is working! Path Hit: ' + req.url);
 });
@@ -62,7 +70,7 @@ app.get('/oauth', function(req, res) {
 
 app.post('/aws-get-ips', function (req, res) {
 
-    var params = commandParams.extractFullyQualifiedParams(req.body.text, req.body.channel_name);
+    var params = commandParams.extractParams(req.body.text, req.body.channel_name);
 
     res.header('Content-Type', 'application/json');
     res.send(
