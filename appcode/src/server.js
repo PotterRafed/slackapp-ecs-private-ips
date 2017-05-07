@@ -2,12 +2,14 @@
 
 const express = require('express');
 const appconfig = require('./appconfig.js');
-const commandParams = require('./commandParams.js');
+
+var CommandParams = require('./CommandParams.js');
 var EcsIps = require('./EcsIps.js');
 var request = require('request');
 var bodyParser = require('body-parser');
 
 const defaultRegion = appconfig.awsDefaultRegion();
+const defaultEnv = 'stag';
 const slackCredentials = appconfig.slackCredentials();
 
 // Constants
@@ -22,15 +24,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.listen(PORT);
 console.log('Running on http://localhost:' + PORT);
 
-// var text = '--region="myregion"';
-// var cn = 'hardcoded-channel-name';
-//
-// var params = commandParams.extractParams(text, cn);
-//
-// console.log(params);
-
 app.get('/', function(req, res) {
-
 
     res.send('Server is working! Path Hit: ' + req.url);
 });
@@ -70,31 +64,48 @@ app.get('/oauth', function(req, res) {
 
 app.post('/aws-get-ips', function (req, res) {
 
-    var params = commandParams.extractParams(req.body.text, req.body.channel_name);
-
     res.header('Content-Type', 'application/json');
+    console.log(" ++++++++++++++++++ Processing request #" + requestNo + " +++++++++++++++++ From user: " + req.body.user_name);
+    console.log("Request:");
+    console.log(req.body);
+
+    try {
+        var params = new CommandParams(req.body.text);
+
+        params.getParam('region').setDefaultValue(defaultRegion);
+        params.getParam('cluster').setDefaultValue(req.body.channel_name);
+
+        var credentials = appconfig.awsCredentials(params.getParam('env').getValue());
+
+    } catch (ex) {
+        res.send(
+                {
+                    "text": "Could not retrieve IPs: " + ex.message + ". [ _" + req.body.command + " " + req.body.text + "_ ]"
+                }
+        );
+        console.log(ex.message);
+        console.log(" -------------------- Finished request #"+ requestNo + " ---------------------" );
+        requestNo++;
+        return;
+    }
+
     res.send(
         {
-            "text": "Getting IPs for Cluster: '" +  params.cluster + "', Env:'" + params.env + "', Region: '" + params.region + "'"
+            "text": "Getting IPs for Cluster: '" +  params.getParam('cluster').getValue() + "', Env:'" + params.getParam('env').getValue() + "', Region: '" + params.getParam('region').getValue() + "'. [ _" + req.body.command + " " + req.body.text + "_ ]"
         }
     );
 
-    console.log(" ++++++++++++++++++ Processing request #" + requestNo + " +++++++++++++++++ From user: " + req.body.user_name);
-    console.log(req.body);
-    console.log("Running with settings: " + params.cluster + ", " + params.env + ", " + params.region);
 
 
-    try {
-        var credentials = appconfig.awsCredentials(params.env);
-    } catch (ex) {
-        console.log(ex.message);
-    }
+
+    console.log("Running with settings:");
+    console.log(params);
 
     var ecsIps = new EcsIps(
         credentials.key,
         credentials.secret,
-        params.region,
-        params.cluster
+        params.getParam('region').getValue(),
+        params.getParam('cluster').getValue()
     );
 
     ecsIps.get().then(function(result) {
@@ -104,7 +115,7 @@ app.post('/aws-get-ips', function (req, res) {
             {
                 json: {
                     "response_type": "in_channel",
-                    "text": "CLUSTER: '" +  params.cluster + "', ENV: '" + params.env + "', REGION: '" + params.region + "' is running on: " + result
+                    "text": "Cluster: *'" +  params.getParam('cluster').getValue() + "'*, Env: *'" + params.getParam('env').getValue() + "'*, Region: *'" + params.getParam('region').getValue() + "'* is running on: *" + result + "*. [ _" + req.body.command + " " + req.body.text + "_ ]"
                 }
             },
 
@@ -131,7 +142,7 @@ app.post('/aws-get-ips', function (req, res) {
                 }
             }
         );
-        console.log(" ----- Finished request #"+ requestNo + " ------" );
+        console.log(" -------------------- Finished request #"+ requestNo + " ---------------------" );
         requestNo++;
     });
 

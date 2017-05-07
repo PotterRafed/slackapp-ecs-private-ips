@@ -4,9 +4,12 @@ var _fullCommand = '--env';
 var _shortCommand = '-e';
 var _required = false;
 var _defaultValue = '';
-
+var _value = 'staging';
 
 var Parameter = function() {
+    this.required = _required;
+    this.defaultValue = _defaultValue;
+    this.value = _value;
 };
 
 Parameter.prototype.getName = function () {
@@ -21,20 +24,32 @@ Parameter.prototype.getShortCommand = function () {
     return _shortCommand;
 };
 
-Parameter.prototype.getRequired = function () {
-    return _required;
+Parameter.prototype.isRequired = function () {
+    return this.required;
 };
 
 Parameter.prototype.setRequired = function (isRequired) {
-    _required = isRequired;
+    this.required = isRequired;
 };
 
 Parameter.prototype.getDefaultValue = function () {
-    return _defaultValue;
+    return this.defaultValue;
 };
 
 Parameter.prototype.setDefaultValue = function (defaultValue) {
-    _defaultValue = defaultValue
+    this.defaultValue = defaultValue
+};
+
+Parameter.prototype.getValue = function () {
+    if (this.value !== '') {
+        return this.value;
+    }
+
+    return this.defaultValue;
+};
+
+Parameter.prototype.setValue = function (value) {
+    this.value = value
 };
 
 module.exports = Parameter;
