@@ -12,17 +12,15 @@ const defaultRegion = appconfig.awsDefaultRegion();
 const defaultEnv = 'stag';
 const slackCredentials = appconfig.slackCredentials();
 
-// Constants
-const PORT = 8091;
-
 // App
 
 var requestNo = 1;
+var port = appconfig.getPort();
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
-app.listen(PORT);
-console.log('Running on http://localhost:' + PORT);
+app.listen(port);
+console.log('Running on http://localhost:' + port);
 
 app.get('/', function(req, res) {
 
@@ -62,6 +60,87 @@ app.get('/oauth', function(req, res) {
     requestNo++;
 });
 
+app.post('/button-response', function (req, res) {
+    res.header('Content-Type', 'application/json');
+    console.log("Button-Response:");
+
+    // var params = new CommandParams(req.body.text);
+    var params = new CommandParams('');
+
+
+    params.getParam('region').setDefaultValue(defaultRegion);
+    params.getParam('cluster').setDefaultValue(req.body.channel_name);
+
+    var credentials = appconfig.awsCredentials(params.getParam('env').getValue());
+
+    res.send('');
+
+    var ecsIps = new EcsIps(
+        credentials.key,
+        credentials.secret,
+        params.getParam('region').getValue(),
+        params.getParam('cluster').getValue()
+    );
+
+    var reqData = JSON.parse(req.body.payload);
+    console.log(reqData);
+    // console.log(((reqData.actions)[0].selected_options)[0].value);
+
+    if (reqData.callback_id === 'cluster_selection') {
+        //Response generator
+
+
+        ecsIps.getServices(((reqData.actions)[0].selected_options)[0].value).then(function (services) {
+
+            var servicesOptions = [];
+
+            services.forEach(function(service) {
+                servicesOptions.push({
+                    "text": service,
+                    "value": service
+                });
+            });
+
+            var responseBody =
+                {
+                    "attachments": [
+                        {
+                            "text": "Select a service",
+                            "fallback": "Error: was not able to select a cluster",
+                            "callback_id": "service_selection",
+                            "attachment_type": "default",
+                            "actions" : [
+                                {
+                                    "name": "Services list",
+                                    "text": "Pick a service...",
+                                    "type": "select",
+                                    "options": servicesOptions
+                                }
+                            ]
+                        }
+                    ]
+                };
+            request.post(
+                reqData.response_url,
+                {
+                    'body': JSON.stringify(responseBody)
+                },
+                function (error, response, body) {
+                    if (error) {
+                        console.log(error);
+                    }
+                }
+            );
+        });
+
+    } else if (reqData.callback_id === 'service_selection') {
+
+    }
+
+
+
+});
+
 app.post('/aws-get-ips', function (req, res) {
 
     res.header('Content-Type', 'application/json');
@@ -70,7 +149,9 @@ app.post('/aws-get-ips', function (req, res) {
     console.log(req.body);
 
     try {
-        var params = new CommandParams(req.body.text);
+        // var params = new CommandParams(req.body.text);
+        var params = new CommandParams('');
+
 
         params.getParam('region').setDefaultValue(defaultRegion);
         params.getParam('cluster').setDefaultValue(req.body.channel_name);
@@ -89,11 +170,11 @@ app.post('/aws-get-ips', function (req, res) {
         return;
     }
 
-    res.send(
-        {
-            "text": "Getting IPs for Cluster: '" +  params.getParam('cluster').getValue() + "', Env:'" + params.getParam('env').getValue() + "', Region: '" + params.getParam('region').getValue() + "'. [ _" + req.body.command + " " + req.body.text + "_ ]"
-        }
-    );
+    res.send('');
+        // {
+            // "text": "Getting IPs for Cluster: '" +  params.getParam('cluster').getValue() + "', Env:'" + params.getParam('env').getValue() + "', Region: '" + params.getParam('region').getValue() + "'. [ _" + req.body.command + " " + req.body.text + "_ ]"
+        // }
+    // );
 
 
 
@@ -108,43 +189,97 @@ app.post('/aws-get-ips', function (req, res) {
         params.getParam('cluster').getValue()
     );
 
-    ecsIps.get().then(function(result) {
+    ecsIps.getClusters().then(function(clusters) {
+
+
+        //Message builder
+        var actions = [];
+        var action = {};
+
+        action.name = "Clusters List";
+        action.text = "Pick a cluster...";
+        action.type = "select";
+
+        var options = [];
+        clusters.forEach(function(cluster) {
+            var option = {};
+            option.text = cluster;
+            option.value = cluster;
+            options.push(option);
+
+        });
+
+        action.options = options;
+        actions.push(action);
+
+        console.log(actions);
+
+        var responseBody =
+            {
+                "attachments": [
+                {
+                    "text": "Select a cluster",
+                    "fallback": "Error: was not able to select a cluster",
+                    "callback_id": "cluster_selection",
+                    "attachment_type": "default",
+                    "actions" : actions
+                }
+            ]
+        };
+
+        console.log(JSON.stringify(responseBody));
 
         request.post(
-            req.body.response_url,
-            {
-                json: {
-                    "response_type": "in_channel",
-                    "text": "Cluster: *'" +  params.getParam('cluster').getValue() + "'*, Env: *'" + params.getParam('env').getValue() + "'*, Region: *'" + params.getParam('region').getValue() + "'* is running on: *" + result + "*. [ _" + req.body.command + " " + req.body.text + "_ ]"
-                }
-            },
+                    req.body.response_url,
+                    {
+                        'body': JSON.stringify(responseBody)
+                    },
+                    function (error, response, body) {
+                        if (error) {
+                            console.log(error);
+                        }
+                    }
+                );
 
-            function (error, response, body) {
-                if (error) {
-                    console.log(error);
-                }
-            }
-        );
-        console.log(" ------------------- Finished request #"+ requestNo + " ---------------------" );
-        requestNo++;
-    }).catch(function(reason) {
-        request.post(
-            req.body.response_url,
-            {
-                json: {
-                    "text": "Could not retrieve IPs: " + reason
-                }
-            },
-
-            function (error, response, body) {
-                if (error) {
-                    console.log(error);
-                }
-            }
-        );
-        console.log(" -------------------- Finished request #"+ requestNo + " ---------------------" );
-        requestNo++;
     });
+
+    // ecsIps.get().then(function(result) {
+    //
+    //     request.post(
+    //         req.body.response_url,
+    //         {
+    //             json: {
+    //                 "response_type": "in_channel",
+    //                 "text": "Cluster: *'" +  params.getParam('cluster').getValue() + "'*, Env: *'" + params.getParam('env').getValue() + "'*, Region: *'" + params.getParam('region').getValue() + "'* is running on: *" + result + "*. [ _" + req.body.command + " " + req.body.text + "_ ]"
+    //             }
+    //         },
+    //
+    //         function (error, response, body) {
+    //             if (error) {
+    //                 console.log(error);
+    //             }
+    //         }
+    //     );
+    //     console.log(" ------------------- Finished request #"+ requestNo + " ---------------------" );
+    //     requestNo++;
+    // }).catch(function(reason) {
+    //     request.post(
+    //         req.body.response_url,
+    //         {
+    //             json: {
+    //                 "text": "Could not retrieve IPs: " + reason
+    //             }
+    //         },
+    //
+    //         function (error, response, body) {
+    //             if (error) {
+    //                 console.log(error);
+    //             }
+    //         }
+    //     );
+    //     console.log(" -------------------- Finished request #"+ requestNo + " ---------------------" );
+    //     requestNo++;
+    // });
 
     ecsIps = null;
 });

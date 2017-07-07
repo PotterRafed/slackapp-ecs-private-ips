@@ -1,3 +1,6 @@
+
+var _DEFAULT_PORT = 80;
+
 var config = require('config');
 
 var awsCredentials = function (awsEnvironment) {
@@ -54,8 +57,17 @@ var awsDefaultRegion = function() {
     }
 };
 
+var getPort = function() {
+    if (config.has("port")) {
+        return config.get("port");
+    } else {
+        return _DEFAULT_PORT;
+    }
+};
+
 module.exports = {
     awsCredentials: awsCredentials,
     awsDefaultRegion: awsDefaultRegion,
-    slackCredentials: slackCredentials
+    slackCredentials: slackCredentials,
+    getPort: getPort
 }
