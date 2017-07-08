@@ -57,6 +57,22 @@ var awsDefaultRegion = function() {
     }
 };
 
+var awsDefaultEnv = function() {
+    if (config.has("aws.default-env")) {
+        return config.get("aws.default-env");
+    } else {
+        throw new Error('Default env not found. Please set a "default-env" under "aws" config in config/default.json');
+    }
+};
+
+var awsDefaultCluster = function() {
+    if (config.has("aws.default-cluster")) {
+        return config.get("aws.default-cluster");
+    } else {
+        throw new Error('Default cluster not found. Please set a "default-cluster" under "aws" config in config/default.json');
+    }
+};
+
 var getPort = function() {
     if (config.has("port")) {
         return config.get("port");
@@ -68,6 +84,8 @@ var getPort = function() {
 module.exports = {
     awsCredentials: awsCredentials,
     awsDefaultRegion: awsDefaultRegion,
+    awsDefaultEnv: awsDefaultEnv,
+    awsDefaultCluster: awsDefaultCluster,
     slackCredentials: slackCredentials,
     getPort: getPort
 }

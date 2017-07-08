@@ -41,11 +41,9 @@ Parameter.prototype.setDefaultValue = function (defaultValue) {
 };
 
 Parameter.prototype.getValue = function () {
-
     if (this.value !== '') {
         return this.value;
     }
-
     return this.defaultValue;
 };
 
