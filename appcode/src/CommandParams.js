@@ -1,5 +1,5 @@
 const _availableParams = [
-    'cluster', 'env', 'region'
+    'cluster', 'env', 'region', 'service'
 ];
 
 var CommandParams = function(commandText) {

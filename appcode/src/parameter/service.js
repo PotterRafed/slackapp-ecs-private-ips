@@ -1,7 +1,7 @@
 
-var _name = 'env';
-var _fullCommand = '--env';
-var _shortCommand = '-e';
+var _name = 'service';
+var _fullCommand = '--service';
+var _shortCommand = '-s';
 var _required = false;
 var _defaultValue = '';
 var _value = '';
