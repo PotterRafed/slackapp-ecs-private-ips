@@ -1,12 +1,14 @@
 var AWS = require('aws-sdk');
 
-function getEcsTasksList (ecs) {
+function getTasksList (service)
+{
+    var params = {
+        cluster: this.cluster,
+        serviceName: service
+    };
 
-    var cluster = this.cluster;
+    var ecs = this.ecs;
     return new Promise(function(resolve, reject) {
-        var params = {
-            cluster: cluster
-        };
 
         ecs.listTasks(params, function(err, data) {
             if (err) {
@@ -21,18 +23,18 @@ function getEcsTasksList (ecs) {
                 resolve(tasks);
             }
         });
-
     });
 }
 
-function getContainerInstancesList (ecs, tasks) {
+function getContainerInstancesList (tasks)
+{
+    var params = {
+        cluster: this.cluster,
+        tasks: tasks
+    };
+    var ecs = this.ecs;
 
-    var cluster = this.cluster;
     return new Promise(function(resolve, reject) {
-        var params = {
-            cluster: cluster,
-            tasks: tasks
-        };
 
         ecs.describeTasks(params, function(err, data) {
             if (err) {
@@ -52,14 +54,15 @@ function getContainerInstancesList (ecs, tasks) {
     });
 }
 
-function getEc2InstanceIds (ecs, containerInstances) {
+function getEc2InstanceIds (containerInstances)
+{
+    var params = {
+        cluster: this.cluster,
+        containerInstances: containerInstances
+    };
+    var ecs = this.ecs;
 
-    var cluster = this.cluster;
     return new Promise(function(resolve, reject) {
-        var params = {
-            cluster: cluster,
-            containerInstances: containerInstances
-        };
 
         ecs.describeContainerInstances(params, function(err, data) {
             if (err) {
@@ -78,14 +81,15 @@ function getEc2InstanceIds (ecs, containerInstances) {
     });
 }
 
-function getEc2InstancesIps (ec2, ec2InstanceIds) {
+function getEc2InstancesIps (ec2InstanceIds)
+{
+    var params = {
+        DryRun: false,
+        InstanceIds: ec2InstanceIds
+    };
 
-    var cluster = this.cluster;
+    var ec2 = this.ec2;
     return new Promise(function(resolve, reject) {
-        var params = {
-            DryRun: false,
-            InstanceIds: ec2InstanceIds
-        };
 
         ec2.describeInstances(params, function(err, data) {
             if (err) {
@@ -107,28 +111,127 @@ function getEc2InstancesIps (ec2, ec2InstanceIds) {
     });
 }
 
-var EcsIps = function(key, secret, region, clusterName) {
+var EcsIps = function(key, secret, region, clusterName)
+{
     this.key = key;
     this.secret = secret;
     this.region = region;
     this.cluster = clusterName;
+
+    var config = new AWS.Config({
+        accessKeyId: this.key,
+        secretAccessKey: this.secret,
+        region: this.region
+    });
+
+    this.ecs = new AWS.ECS(config);
+    this.ec2 = new AWS.EC2(config);
 };
 
-EcsIps.prototype.get = function() {
+EcsIps.prototype.getIPs = function(cluster, service)
+{
+    this.cluster = cluster;
+    return getTasksList.call(this, service)
+        .then(getContainerInstancesList.bind(this))
+        .then(getEc2InstanceIds.bind(this))
+        .then(getEc2InstancesIps.bind(this));
+};
 
-        var config = new AWS.Config({
-            accessKeyId: this.key,
-            secretAccessKey: this.secret,
-            region: this.region
+function getClusters(ecs)
+{
+
+    return new Promise(function(resolve, reject) {
+
+        ecs.listClusters({}, function(err, data) {
+            if (err) {
+                console.log("Error while trying to list clusters: " + err.message, err.stack);
+                reject(err.message);
+            } else {
+                var clusters = data.clusterArns;
+
+                if (clusters.length <= 0) {
+                    reject("No clusters found.");
+                }
+
+                var clusterShortNames = [];
+                clusters.forEach( function(cluster) {
+                    clusterShortNames.push(cluster.replace(/.*cluster\//g, ''));
+                });
+                resolve(clusterShortNames);
+            }
         });
 
-        var ecs = new AWS.ECS(config);
-        var ec2 = new AWS.EC2(config);
+    });
+}
 
-        return getEcsTasksList.call(this, ecs)
-            .then(getContainerInstancesList.bind(this, ecs))
-            .then(getEc2InstanceIds.bind(this, ecs))
-            .then(getEc2InstancesIps.bind(this, ec2));
+EcsIps.prototype.getClusters = function()
+{
+    return getClusters.call(this, this.ecs);
+};
+
+function listServices(ecs, cluster, servicesList, nextToken)
+{
+    var params = {cluster: cluster};
+
+    if (nextToken !== undefined) {
+        params.nextToken = nextToken;
+    }
+
+    if (servicesList === undefined) {
+        servicesList = [];
+    }
+
+    var newServicesList = servicesList;
+
+    return new Promise(function(resolve, reject) {
+        ecs.listServices(params, function(err, data) {
+            if (err) {
+                console.log("Error while trying to list services: " + err.message, err.stack);
+                reject(err.message);
+            } else {
+
+                var services = data.serviceArns;
+
+                if (services.length <= 0) {
+                    reject("No services found for cluster '" + cluster + "'");
+                }
+
+                services.forEach( function(service) {
+                    newServicesList.push(service.replace(/.*service\//g, ''));
+                });
+
+                resolve({
+                    "services" : newServicesList,
+                    "nextToken" : (data.nextToken === undefined) ? undefined : data.nextToken
+                });
+            }
+        });
+    })
+    .then(function (resolvedData) {
+
+        if (resolvedData.nextToken === undefined) {
+            console.log("Received services.");
+            return resolvedData.services;
+        } else {
+            return listServices(ecs, cluster, resolvedData.services, resolvedData.nextToken)
+        }
+    });
+
+}
+
+function getServices(ecs, cluster)
+{
+    return new Promise(function(resolve, reject) {
+
+        console.log("Getting Services for cluster '" + cluster + "'...");
+        resolve(listServices(ecs, cluster));
+
+    });
+}
+
+EcsIps.prototype.getServices = function(cluster)
+{
+    return getServices.call(this, this.ecs, cluster);
 };
 
 module.exports = EcsIps;

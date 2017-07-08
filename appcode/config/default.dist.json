@@ -1,6 +1,9 @@
 {
+    "port" : "80", //Default is 80 if not set
     "aws" : {
         "default-region": "eu-west-1", //Set the default region here
+        "default-env": "stag", //Set the default env here
+        "default-cluster": "your-default-cluster", //Set the default cluster here
         "credentials": {
             //AWS Environment name, E.g. Prod, Staging, Dev. If not provided default will be used
             "staging" : {
