@@ -111,32 +111,6 @@ function getEc2InstancesIps (ec2InstanceIds)
     });
 }
 
-var EcsIps = function(key, secret, region, clusterName)
-{
-    this.key = key;
-    this.secret = secret;
-    this.region = region;
-    this.cluster = clusterName;
-
-    var config = new AWS.Config({
-        accessKeyId: this.key,
-        secretAccessKey: this.secret,
-        region: this.region
-    });
-
-    this.ecs = new AWS.ECS(config);
-    this.ec2 = new AWS.EC2(config);
-};
-
-EcsIps.prototype.getIPs = function(cluster, service)
-{
-    this.cluster = cluster;
-    return getTasksList.call(this, service)
-        .then(getContainerInstancesList.bind(this))
-        .then(getEc2InstanceIds.bind(this))
-        .then(getEc2InstancesIps.bind(this));
-};
-
 function getClusters(ecs)
 {
 
@@ -163,11 +137,6 @@ function getClusters(ecs)
 
     });
 }
-
-EcsIps.prototype.getClusters = function()
-{
-    return getClusters.call(this, this.ecs);
-};
 
 function listServices(ecs, cluster, servicesList, nextToken)
 {
@@ -207,15 +176,15 @@ function listServices(ecs, cluster, servicesList, nextToken)
             }
         });
     })
-    .then(function (resolvedData) {
+        .then(function (resolvedData) {
 
-        if (resolvedData.nextToken === undefined) {
-            console.log("Received services.");
-            return resolvedData.services;
-        } else {
-            return listServices(ecs, cluster, resolvedData.services, resolvedData.nextToken)
-        }
-    });
+            if (resolvedData.nextToken === undefined) {
+                console.log("Received services.");
+                return resolvedData.services;
+            } else {
+                return listServices(ecs, cluster, resolvedData.services, resolvedData.nextToken)
+            }
+        });
 
 }
 
@@ -228,6 +197,36 @@ function getServices(ecs, cluster)
 
     });
 }
+
+var EcsIps = function(key, secret, region)
+{
+    this.key = key;
+    this.secret = secret;
+    this.region = region;
+
+    var config = new AWS.Config({
+        accessKeyId: this.key,
+        secretAccessKey: this.secret,
+        region: this.region
+    });
+
+    this.ecs = new AWS.ECS(config);
+    this.ec2 = new AWS.EC2(config);
+};
+
+EcsIps.prototype.getIPs = function(cluster, service)
+{
+    this.cluster = cluster;
+    return getTasksList.call(this, service)
+        .then(getContainerInstancesList.bind(this))
+        .then(getEc2InstanceIds.bind(this))
+        .then(getEc2InstancesIps.bind(this));
+};
+
+EcsIps.prototype.getClusters = function()
+{
+    return getClusters.call(this, this.ecs);
+};
 
 EcsIps.prototype.getServices = function(cluster)
 {

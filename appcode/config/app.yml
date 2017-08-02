@@ -1,0 +1,22 @@
+default:
+    parameters:
+    -
+      name: 'cluster'
+      fullCommand: '--cluster'
+      shortCommand: '-c'
+      required: false
+    -
+      name: 'env'
+      fullCommand: '--env'
+      shortCommand: '-e'
+      required: true
+    -
+      name: 'region'
+      fullCommand: '--region'
+      shortCommand: '-r'
+      required: true
+    -
+      name: 'service'
+      fullCommand: '--service'
+      shortCommand: '-s'
+      required: false
