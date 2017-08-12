@@ -13,8 +13,6 @@ var InteractiveResponseController = function(req, res) {
 
 InteractiveResponseController.prototype.handle = function ()
 {
-    this._res.header('Content-Type', 'application/json');
-
     var reqData = JSON.parse(this._req.body.payload);
 
     var paramsText = (reqData.callback_id).replace(/.*:::text:\=/g, '');
@@ -22,18 +20,14 @@ InteractiveResponseController.prototype.handle = function ()
 
     var AWSCredentials = config.getAWSCredentials(this.ParamHandler.getParam('env').getValue());
 
+    this._res.header('Content-Type', 'application/json');
     this._res.send('Loading...');
 
-    var ecsIps = new EcsIps(
-        AWSCredentials.key,
-        AWSCredentials.secret,
-        this.ParamHandler.getParam('region').getValue()
-    );
+    var ecsIps = new EcsIps(AWSCredentials, this.ParamHandler.getParam('region').getValue());
 
     if (reqData.callback_id.includes('cluster_selection'))
     {
         //Response generator
-
         var selectedCluster = ((reqData.actions)[0].selected_options)[0].value;
         ecsIps.getServices(selectedCluster)
             .then(function(servicesList) {

@@ -14,8 +14,6 @@ var bodyParser = require('body-parser');
 
 var port = config.getPort();
 
-console.log(port);
-
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.listen(port);
@@ -45,11 +43,12 @@ app.get('/test', function (req, res) {
     // Logger.logRequest(req);
     // new GetIpsController(req, res);
 
-
     var ParamHandler = require('./ConfigHandler/ParameterHandler');
 
     var pH = new ParamHandler();
 
     pH.initParams('--cluster="someclust" -e="myenv" -s="someserv" --region="namaikatiregiona"');
+
+    console.log(pH.getAllParams())
 
 });

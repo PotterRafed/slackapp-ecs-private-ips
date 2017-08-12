@@ -68,4 +68,14 @@ ParameterHandler.prototype.getParam = function (parameterName) {
     }
 };
 
+ParameterHandler.prototype.getAllParams = function () {
+    var allParams = {};
+    for (var paramName in this.parameters) {
+        if (this.parameters.hasOwnProperty(paramName)) {
+            allParams[paramName] = (this.parameters[paramName]).getValue();
+        }
+    }
+    return allParams;
+};
+
 module.exports = ParameterHandler;

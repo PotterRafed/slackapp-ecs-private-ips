@@ -198,10 +198,10 @@ function getServices(ecs, cluster)
     });
 }
 
-var EcsIps = function(key, secret, region)
+var EcsIps = function(AWSCredentials, region)
 {
-    this.key = key;
-    this.secret = secret;
+    this.key = AWSCredentials.key;
+    this.secret = AWSCredentials.secret;
     this.region = region;
 
     var config = new AWS.Config({
