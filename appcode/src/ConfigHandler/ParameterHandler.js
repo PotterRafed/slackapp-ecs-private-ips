@@ -17,6 +17,7 @@ var ParameterHandler = function() {
     }
 
     this.parameters = {};
+    this.rawCommandText = '';
 
     (settings.parameters).forEach(function (paramConfig) {
         var param = new Parameter(paramConfig);
@@ -26,6 +27,10 @@ var ParameterHandler = function() {
     }.bind(this));
 };
 
+ParameterHandler.prototype.getRawCommandText = function () {
+    return this.rawCommandText;
+};
+
 /**
  * Initialises parameter values by reading a command-line text input and
  * checking against registered commands
@@ -33,6 +38,8 @@ var ParameterHandler = function() {
  * @param commandText
  */
 ParameterHandler.prototype.initParams = function (commandText) {
+
+    this.rawCommandText = commandText;
 
     for (var paramName in this.parameters) {
         if (this.parameters.hasOwnProperty(paramName)) {

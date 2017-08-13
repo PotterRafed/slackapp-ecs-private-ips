@@ -1,10 +1,10 @@
 'use strict';
 
 var MessageBuilder = function() {
-
+    this.callbackIdHandler = new (require('./CallbackIdHandler'))();
 };
 
-MessageBuilder.prototype.getSelectedClusterResponseMessage = function (clustersList)
+MessageBuilder.prototype.getClusterSelectionRequestBody = function (clustersList, commandParams)
 {
     //Message builder
     var actions = [];
@@ -15,7 +15,7 @@ MessageBuilder.prototype.getSelectedClusterResponseMessage = function (clustersL
     action.type = "select";
 
     var options = [];
-    clusters.forEach(function(cluster) {
+    clustersList.forEach(function(cluster) {
         var option = {};
         option.text = cluster;
         option.value = cluster;
@@ -31,12 +31,43 @@ MessageBuilder.prototype.getSelectedClusterResponseMessage = function (clustersL
                 {
                     "text": "Select a cluster",
                     "fallback": "Error: was not able to select a cluster",
-                    "callback_id": "cluster_selection:::text:=" + this._req.body.text,
+                    "callback_id": this.callbackIdHandler.generateClusterSelectionId(commandParams),
                     "attachment_type": "default",
                     "actions" : actions
                 }
             ]
         };
+};
+
+MessageBuilder.prototype.getServiceSelectionRequestBody = function (servicesList, selectedCluster, commandParams) {
+
+    var servicesOptions = [];
+
+    servicesList.forEach(function (serviceResult) {
+        servicesOptions.push({
+            "text": serviceResult,
+            "value": serviceResult
+        });
+    });
+
+    return {
+        "attachments": [
+            {
+                "text": "Select a service",
+                "fallback": "Error: was not able to select a cluster",
+                "callback_id": this.callbackIdHandler.generateServiceSelectionId(selectedCluster, commandParams),
+                "attachment_type": "default",
+                "actions" : [
+                    {
+                        "name": "Services list",
+                        "text": "Pick a service...",
+                        "type": "select",
+                        "options": servicesOptions
+                    }
+                ]
+            }
+        ]
+    };
 };
 
 module.exports = MessageBuilder;
