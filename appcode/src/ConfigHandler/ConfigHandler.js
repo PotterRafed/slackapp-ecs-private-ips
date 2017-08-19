@@ -1,4 +1,3 @@
-const DEFAULT_PORT = 80;
 const PARAMS_LOCATION = './config/config.yml';
 
 var _config = require('yaml-config').readConfig(PARAMS_LOCATION);
@@ -8,7 +7,16 @@ var getPort = function()
     if (_config.port !== undefined) {
         return _config.port;
     } else {
-        return DEFAULT_PORT;
+        throw new Error("Could not find specified 'port' in config");
+    }
+};
+
+var getHost = function()
+{
+    if (_config.host !== undefined) {
+        return _config.host;
+    } else {
+        throw new Error("Could not find specified 'host' in config");
     }
 };
 
@@ -60,6 +68,7 @@ module.exports = {
     getAWSCredentials: getAWSCredentials,
     getParameterSetting: getParameterSetting,
     getSlackCredentials: getSlackCredentials,
-    getPort: getPort
+    getPort: getPort,
+    getHost: getHost
 };
 

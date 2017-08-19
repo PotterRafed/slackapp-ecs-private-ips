@@ -11,9 +11,9 @@ var OAuthController = require('./Controller/OAuthController.js');
 
 const app = Express();
 app.use(require('body-parser').urlencoded({ extended: false }));
-app.listen(config.getPort());
+app.listen(config.getPort(), config.getHost());
 
-console.log('Running on http://localhost:' + config.getPort());
+console.log('Running on ' + config.getHost() + ':' + config.getPort());
 
 app.get('/', function(req, res) {
     res.send('Server is working! Path Hit: ' + req.url);
