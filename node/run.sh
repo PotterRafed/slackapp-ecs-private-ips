@@ -20,9 +20,6 @@ if [ "$AWS_PROD_SECRET" ]; then
    sed -i "s/your-aws-prod-secret/$AWS_PROD_SECRET/" "/var/www/html/config/config.yml"
 fi
 
-if [ "$AWS_PROD_KEY" ]; then
-   sed -i "s/your-aws-prod-key/$AWS_PROD_KEY/" "/var/www/html/config/config.yml"
-fi
 
 #Slack Credentials
 
