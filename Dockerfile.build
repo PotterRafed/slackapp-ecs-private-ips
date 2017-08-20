@@ -16,13 +16,13 @@ COPY supervisord/conf.d /etc/supervisor/conf.d/
 # -----------------------------------------------------------------------------
 # Copy Custom Run Command Script
 # -----------------------------------------------------------------------------
-COPY /container-run/run.sh /usr/local/bin/
+COPY /node/run.sh /usr/local/bin/
 
 # -----------------------------------------------------------------------------
 # Install required packages & node modules
 # -----------------------------------------------------------------------------
 RUN apk update && apk add supervisor \
-    && npm install \
+    && npm install --production \
     && mkdir /etc/supervisord \
     && chmod 755 /usr/local/bin/run.sh
 

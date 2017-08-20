@@ -3,10 +3,6 @@
 # Setup configuration
 cp /var/www/html/config/config.yml.dist /var/www/html/config/config.yml
 
-if [ $COMPOSER_INSTALL = "true" ]; then
-    composer install --no-interaction --verbose
-fi
-
 #AWS Credentials
 if [ "$AWS_STAGING_KEY" ]; then
    sed -i "s/your-aws-staging-key/$AWS_STAGING_KEY/" "/var/www/html/config/config.yml"
