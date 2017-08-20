@@ -1,6 +1,6 @@
 # AWS ECS IP Report Tool
 
-This is a Dockerised application meant to serve as the backend of a Slack App.
+This is a Dockerised application meant to serve as the backend of a Slack App which would return the Private IPs of all running tasks in an AWS Elastic Container Service
 
 There are 2 parts of setting the process to work from Slack.  
 1) Setting up the Slack App itself
