@@ -4,7 +4,11 @@ var _consoleLogger = require('./Type/ConsoleLogger.js');
 var _logRequest = function (req) {
 
     _consoleLogger.write(" ++++++++++++++++++ Received Request +++++++++++++++++ ");
-    _consoleLogger.write(req.body);
+    if (req.body.payload === undefined ) {
+        _consoleLogger.write(req.body);
+    } else {
+        _consoleLogger.write(JSON.parse(req.body.payload));
+    }
 };
 
 module.exports = {

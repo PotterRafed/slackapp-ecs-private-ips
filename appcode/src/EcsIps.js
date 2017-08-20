@@ -1,7 +1,6 @@
 var AWS = require('aws-sdk');
 
-function getTasksList (service)
-{
+function getTasksList (service) {
     var params = {
         cluster: this.cluster,
         serviceName: service
@@ -26,8 +25,7 @@ function getTasksList (service)
     });
 }
 
-function getContainerInstancesList (tasks)
-{
+function getContainerInstancesList (tasks) {
     var params = {
         cluster: this.cluster,
         tasks: tasks
@@ -54,8 +52,7 @@ function getContainerInstancesList (tasks)
     });
 }
 
-function getEc2InstanceIds (containerInstances)
-{
+function getEc2InstanceIds (containerInstances) {
     var params = {
         cluster: this.cluster,
         containerInstances: containerInstances
@@ -81,8 +78,7 @@ function getEc2InstanceIds (containerInstances)
     });
 }
 
-function getEc2InstancesIps (ec2InstanceIds)
-{
+function getEc2InstancesIps (ec2InstanceIds) {
     var params = {
         DryRun: false,
         InstanceIds: ec2InstanceIds
@@ -111,8 +107,7 @@ function getEc2InstancesIps (ec2InstanceIds)
     });
 }
 
-function getClusters(ecs)
-{
+function getClusters(ecs) {
 
     return new Promise(function(resolve, reject) {
 
@@ -131,15 +126,14 @@ function getClusters(ecs)
                 clusters.forEach( function(cluster) {
                     clusterShortNames.push(cluster.replace(/.*cluster\//g, ''));
                 });
+                console.log("Received clusters list.");
                 resolve(clusterShortNames);
             }
         });
-
     });
 }
 
-function listServices(ecs, cluster, servicesList, nextToken)
-{
+function listServices(ecs, cluster, servicesList, nextToken) {
     var params = {cluster: cluster};
 
     if (nextToken !== undefined) {
@@ -158,7 +152,6 @@ function listServices(ecs, cluster, servicesList, nextToken)
                 console.log("Error while trying to list services: " + err.message, err.stack);
                 reject(err.message);
             } else {
-
                 var services = data.serviceArns;
 
                 if (services.length <= 0) {
@@ -176,20 +169,19 @@ function listServices(ecs, cluster, servicesList, nextToken)
             }
         });
     })
-        .then(function (resolvedData) {
+    .then(function (resolvedData) {
 
-            if (resolvedData.nextToken === undefined) {
-                console.log("Received services.");
-                return resolvedData.services;
-            } else {
-                return listServices(ecs, cluster, resolvedData.services, resolvedData.nextToken)
-            }
-        });
+        if (resolvedData.nextToken === undefined) {
+            console.log("Received services.");
+            return resolvedData.services;
+        } else {
+            return listServices(ecs, cluster, resolvedData.services, resolvedData.nextToken)
+        }
+    });
 
 }
 
-function getServices(ecs, cluster)
-{
+function getServices(ecs, cluster) {
     return new Promise(function(resolve, reject) {
 
         console.log("Getting Services for cluster '" + cluster + "'...");
@@ -198,10 +190,9 @@ function getServices(ecs, cluster)
     });
 }
 
-var EcsIps = function(key, secret, region)
-{
-    this.key = key;
-    this.secret = secret;
+var EcsIps = function(AWSCredentials, region) {
+    this.key = AWSCredentials.key;
+    this.secret = AWSCredentials.secret;
     this.region = region;
 
     var config = new AWS.Config({
@@ -214,8 +205,7 @@ var EcsIps = function(key, secret, region)
     this.ec2 = new AWS.EC2(config);
 };
 
-EcsIps.prototype.getIPs = function(cluster, service)
-{
+EcsIps.prototype.getIPs = function(cluster, service) {
     this.cluster = cluster;
     return getTasksList.call(this, service)
         .then(getContainerInstancesList.bind(this))
@@ -223,13 +213,11 @@ EcsIps.prototype.getIPs = function(cluster, service)
         .then(getEc2InstancesIps.bind(this));
 };
 
-EcsIps.prototype.getClusters = function()
-{
+EcsIps.prototype.getClusters = function() {
     return getClusters.call(this, this.ecs);
 };
 
-EcsIps.prototype.getServices = function(cluster)
-{
+EcsIps.prototype.getServices = function(cluster) {
     return getServices.call(this, this.ecs, cluster);
 };
 

@@ -1,0 +1,4 @@
+appcode/node_modules
+.idea
+.git
+appcode/config/config.yml
