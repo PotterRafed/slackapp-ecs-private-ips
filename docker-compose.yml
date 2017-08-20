@@ -5,8 +5,10 @@ services:
     container_name: NodeJS
     build:
       context: .
-      dockerfile: Dockerfile
+      dockerfile: node/Dockerfile
     volumes:
       - ./appcode:/var/www/html
     ports:
-      - "8090:80"
+      - "8080:80"
+    stdin_open: true
+    tty: true

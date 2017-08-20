@@ -1,30 +1,30 @@
 default:
+    #The port at which the app should run
+    host: '0.0.0.0'
+    port: '80'
 
-  #The port at which the app should run
-  port: 80,
+    #Set your default parameter values here (optional)
+    parameters:
+        cluster:
+            defaultValue: "" #your-default-cluster
+        env:
+            defaultValue: "" #your-default-env
+        region:
+            defaultValue: "" #your-default-region
+        service:
+            defaultValue: "" #your-default-service
 
-  #Set your default parameter values here (optional)
-  parameters:
-    cluster:
-      defaultValue: '' #your-default-cluster
-    env:
-      defaultValue: '' #your-default-env
-    region:
-      defaultValue: '' #your-default-region
-    service:
-      defaultValue: '' #your-default-service
+    aws:
+        #AWS Environment name, E.g. Prod, Staging, Dev, Test etc.. Add as many as you want
+        #At least one environment is required
+        staging:
+            key: "your-aws-staging-key"
+            secret: "your-aws-staging-secret"
+        prod:
+            key: "your-aws-prod-key"
+            secret: "your-aws-prod-secret"
 
-  aws:
-    #AWS Environment name, E.g. Prod, Staging, Dev, Test etc.. Add as many as you want
-    #At least one environment is required
-    staging:
-      key: "your-aws-staging-key",
-      secret: "your-aws-staging-secret",
-    prod:
-      key: "your-aws-prod-key",
-      secret: "your-aws-prod-secret"
-
-  #Your slack-app clientId and Secret
-  slack-app:
-    clientId: "your-client-id",
-    clientSecret: "your-client-secret"
+    #Your slack-app clientId and Secret
+    slack-app:
+        clientId: "your-client-id"
+        clientSecret: "your-client-secret"

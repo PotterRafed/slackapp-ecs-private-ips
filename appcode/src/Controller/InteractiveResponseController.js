@@ -1,148 +1,76 @@
 const config = require('../ConfigHandler/ConfigHandler.js');
 var EcsIps = require('../EcsIps.js');
-var Request = require('request');
 
 var ParameterHandler = require('../ConfigHandler/ParameterHandler');
+var CallbackIdHndlr = require('../Message/CallbackIdHandler');
+var Responder = require('../ResponseHandler/Responder');
 
+/**
+ * @param req
+ * @param res
+ * @constructor
+ */
 var InteractiveResponseController = function(req, res) {
-    this._req = req;
-    this._res = res;
+
+    this.reqData = JSON.parse(req.body.payload);
+
+    this.CallbackIdHandler = new CallbackIdHndlr(this.reqData.callback_id);
+
     this.ParamHandler = new ParameterHandler();
+    this.ParamHandler.initParams(this.CallbackIdHandler.getCommandParams());
+
+    this.Responder = new Responder(res, this.reqData.response_url);
     this.handle();
 };
 
 InteractiveResponseController.prototype.handle = function ()
 {
-    this._res.header('Content-Type', 'application/json');
+    try {
+        var AWSCredentials = config.getAWSCredentials(this.ParamHandler.getParam('env').getValue());
+        var ecsIps = new EcsIps(AWSCredentials, this.ParamHandler.getParam('region').getValue());
 
-    var reqData = JSON.parse(this._req.body.payload);
+        this.Responder.sendLoading();
+    } catch (ex) {
+        this.Responder.sendError(ex.message, true);
+        console.log(ex.message);
+        console.log(" -------------------- Finished request ---------------------" );
+        return;
+    }
 
-    var paramsText = (reqData.callback_id).replace(/.*:::text:\=/g, '');
-    this.ParamHandler.initParams(paramsText);
+    if (this.CallbackIdHandler.isClusterSelectionAction()) {
 
-    var AWSCredentials = config.getAWSCredentials(this.ParamHandler.getParam('env').getValue());
-
-    this._res.send('Loading...');
-
-    var ecsIps = new EcsIps(
-        AWSCredentials.key,
-        AWSCredentials.secret,
-        this.ParamHandler.getParam('region').getValue()
-    );
-
-    if (reqData.callback_id.includes('cluster_selection'))
-    {
-        //Response generator
-
-        var selectedCluster = ((reqData.actions)[0].selected_options)[0].value;
+        var selectedCluster = ((this.reqData.actions)[0].selected_options)[0].value;
         ecsIps.getServices(selectedCluster)
             .then(function(servicesList) {
 
-                var servicesOptions = [];
+                this.Responder.sendServiceSelection(servicesList, selectedCluster, this.ParamHandler.getRawCommandText());
+                console.log(" -------------------- Finished request ---------------------" );
 
-                servicesList.forEach(function (serviceResult) {
-                    servicesOptions.push({
-                        "text": serviceResult,
-                        "value": serviceResult
-                    });
-                });
+            }.bind(this))
+            .catch(function(error) {
 
-                var responseBody =
-                    {
-                        "attachments": [
-                            {
-                                "text": "Select a service",
-                                "fallback": "Error: was not able to select a cluster",
-                                "callback_id": selectedCluster + ":::service_selection:::text:=" + paramsText,
-                                "attachment_type": "default",
-                                "actions" : [
-                                    {
-                                        "name": "Services list",
-                                        "text": "Pick a service...",
-                                        "type": "select",
-                                        "options": servicesOptions
-                                    }
-                                ]
-                            }
-                        ]
-                    };
-                Request.post(
-                    reqData.response_url,
-                    {
-                        'body': JSON.stringify(responseBody)
-                    },
-                    function (error, response, body) {
-                        if (error) {
-                            console.log(error);
-                        }
-                    }
-                );
+                this.Responder.sendError(error);
+                console.log(error);
+                console.log(" -------------------- Finished request ---------------------" );
 
-            })
-            .catch(function(reason) {
-                    Request.post(
-                        reqData.response_url,
-                        {
-                            json: {
-                                "text": "Could not retrieve IPs: " + reason
-                            }
-                        },
+            }.bind(this));
 
-                        function (error, response, body) {
-                            if (error) {
-                                console.log(error);
-                            }
-                        }
-                    );
-                    console.log(reason);
-                    console.log(" -------------------- Finished request ---------------------" );
-            });
+    } else if (this.CallbackIdHandler.isServiceSelectionAction()) {
 
-    } else if (reqData.callback_id.includes(':::service_selection')) {
-
-        var cluster = reqData.callback_id.substr(0, reqData.callback_id.indexOf(":::"));
-        var service = ((reqData.actions)[0].selected_options)[0].value;
+        var cluster = this.CallbackIdHandler.getCluster();
+        var service = ((this.reqData.actions)[0].selected_options)[0].value;
 
         console.log("Getting IPs for service '" + service + "'");
 
-        //TODO: PUT IN A CLASS - DUPLICATED
         ecsIps.getIPs(cluster, service)
             .then(function (IPs) {
-                Request.post(
-                    reqData.response_url,
-                    {
-                        json: {
-                            "response_type": "in_channel",
-                            "text": "Cluster: *'" + cluster + "'*, Service: *'" + service + "'* is running on: *" + IPs + "*."
-                        }
-                    },
-
-                    function (error, response, body) {
-                        if (error) {
-                            console.log(error);
-                        }
-                    }
-                );
+                this.Responder.sendFullIPs(IPs, {cluster: cluster, service: service});
                 console.log(" ------------------- Finished request ---------------------" );
-
-            })
-            .catch(function(reason) {
-                Request.post(
-                    reqData.response_url,
-                    {
-                        json: {
-                            "text": "Could not retrieve IPs: " + reason
-                        }
-                    },
-
-                    function (error, response, body) {
-                        if (error) {
-                            console.log(error);
-                        }
-                    }
-                );
+            }.bind(this))
+            .catch(function(error) {
+                this.Responder.sendError(error);
                 console.log(" -------------------- Finished request ---------------------" );
-            });
+            }.bind(this));
     }
 };
 
