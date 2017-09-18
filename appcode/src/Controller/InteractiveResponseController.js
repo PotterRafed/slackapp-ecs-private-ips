@@ -2,7 +2,7 @@ const config = require('../ConfigHandler/ConfigHandler.js');
 var EcsIps = require('../EcsIps.js');
 
 var ParameterHandler = require('../ConfigHandler/ParameterHandler');
-var CallbackIdHndlr = require('../Message/CallbackIdHandler');
+var CallbackIdHandler = require('../Message/CallbackIdHandler');
 var Responder = require('../ResponseHandler/Responder');
 
 /**
@@ -14,7 +14,7 @@ var InteractiveResponseController = function(req, res) {
 
     this.reqData = JSON.parse(req.body.payload);
 
-    this.CallbackIdHandler = new CallbackIdHndlr(this.reqData.callback_id);
+    this.CallbackIdHandler = new CallbackIdHandler(this.reqData.callback_id);
 
     this.ParamHandler = new ParameterHandler();
     this.ParamHandler.initParams(this.CallbackIdHandler.getCommandParams());
