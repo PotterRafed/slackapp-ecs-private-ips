@@ -8,9 +8,13 @@
     "start": "node src/server.js"
   },
   "dependencies": {
+    "async": "^2.5.0",
     "aws-sdk": "^2.45.0",
     "body-parser": "^1.17.1",
+    "db-migrate": "^0.10.0-beta.24",
+    "db-migrate-mysql": "^1.1.10",
     "express": "^4.15.2",
+    "mysql": "^2.14.1",
     "request": "^2.81.0",
     "yaml-config": "^0.3.0"
   },

@@ -1,6 +1,7 @@
 version: '2'
 
 services:
+
   node:
     container_name: NodeJS
     build:
@@ -12,3 +13,20 @@ services:
       - "8080:80"
     stdin_open: true
     tty: true
+    environment:
+      ENV: 'dev'
+    depends_on:
+      - mysql
+    links:
+      - "mysql:NodeMysql"
+
+  mysql:
+    image: mysql:5.7.10
+    container_name: NodeMysql
+    environment:
+      MYSQL_ROOT_PASSWORD: 'rootpw'
+      MYSQL_USER: 'admin'
+      MYSQL_PASSWORD: 'nodemysqlpwd'
+      MYSQL_DATABASE: 'retro'
+    ports:
+      - "3007:3306"

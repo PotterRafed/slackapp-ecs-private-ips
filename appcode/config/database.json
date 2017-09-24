@@ -1,0 +1,10 @@
+{
+    "dev": {
+        "host": "mysql",
+        "user": "admin",
+        "password" : "nodemysqlpwd",
+        "database": "retro",
+        "driver": "mysql",
+        "multipleStatements": true
+    }
+}

@@ -9,6 +9,24 @@ var InteractiveResponseController = require('./Controller/InteractiveResponseCon
 var OAuthController = require('./Controller/OAuthController.js');
 
 
+var data = {
+    tables: {
+        questions: [
+            {question: "How would you rate this person\\'s commitment to the sprint?"},
+            {question: "What do you think their quality of work rates as?"}
+        ]
+    }
+};
+
+var db = require('./Persistance/db');
+// db.connect(function() {
+//     db.fixtures(data, function(err) {
+//         if (err) return console.log(err);
+//         console.log('Data has been loaded...')
+//     })
+// });
+
+
 const app = Express();
 app.use(require('body-parser').urlencoded({ extended: false }));
 app.listen(config.getPort(), config.getHost());
