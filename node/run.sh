@@ -54,9 +54,10 @@ fi
 echo "Initialising Database..."
 echo "Waiting 25s for Container Network to be established...."
 # Give MySql Service a chance to start
-sleep 25
+#sleep 5
 
 #Run migrations
+## @TODO Possibly run this process after a delay
 node_modules/db-migrate/bin/db-migrate up --config config/database.json
 
 if [ $ENV -ne "dev" ]; then
