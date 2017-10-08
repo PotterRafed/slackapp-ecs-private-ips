@@ -21,9 +21,12 @@ var NewSprintHeroController = function() {
 NewSprintHeroController.prototype.handle = function () {
 
 
-    var participans = ["333", "111", "222"];
+    var participants = ["333", "111", "222"];
     var noVoters = ["333"];
     var sprintName = "CHKT 2017.05";
+
+    var owner = "MaryAnne";
+    var ownerId = '5214';
 
     //By default all questions
 
@@ -33,27 +36,27 @@ NewSprintHeroController.prototype.handle = function () {
 
     // VotingHandler can also be created using the sprint-id in which case the sprint participants
     // wont be init in the db
-    var VotingHandler = new VotingHandler(sprintName, participans, noVoters);
+    var votingHandler = new VotingHandler();
 
     //First init
-    VotingHandler.init(participans, noVoters);
+    votingHandler.init(sprintName, owner, ownerId, participants, noVoters);
 
 
-    //Second init (when sprint exists)
-    VotingHandler.initBySprintId("22");
-
-    var VotingRequester = new VotingRequester();
-
-    (VotingHandler.getRemainingVotes()).forEach(function(voteSpec) {
-        //Will send a request to the user with the question
-        //voteSpec.voterId = 111
-        //voteSpec.voteForId = 222
-        //voteSpec.sprintId = 1
-        //voteSpec.question = "Rate guy"
-        //voteSpec.questionId = 1
-
-        VotingRequester.sendVoteRequest(voteSpec);
-    });
+    // //Second init (when the sprint exists)
+    // // VotingHandler.initBySprintId("22");
+    //
+    // var VotingRequester = new VotingRequester();
+    //
+    // (VotingHandler.getRemainingVotes()).forEach(function(voteSpec) {
+    //     //Will send a request to the user with the question
+    //     //voteSpec.voterId = 111
+    //     //voteSpec.voteForId = 222
+    //     //voteSpec.sprintId = 1
+    //     //voteSpec.question = "Rate guy"
+    //     //voteSpec.questionId = 1
+    //
+    //     VotingRequester.sendVoteRequest(voteSpec);
+    // });
 
 
 };
