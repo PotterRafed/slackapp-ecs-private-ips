@@ -15,14 +15,14 @@ var db = require('../Persistance/db');
 var create = function(retroModel, callback) {
 
     var insertObj = getInsertObject(retroModel);
-    db.get().query('INSERT INTO ' + TABLE_NAME + ' SET ?', insertObj, function(err, rows, fields) {
+
+    db.get().query('INSERT INTO ' + TABLE_NAME + ' SET ?', insertObj, function(err, rows) {
         if (err) {
-            console.log(err.message);
-            callback(null, err);
+            callback(err, rows);
         }
         retroModel.setId(rows.insertId);
-        callback(retroModel);
-    });
+        callback(err, retroModel);
+    }.bind(callback));
 };
 
 var getInsertObject = function(obj) {

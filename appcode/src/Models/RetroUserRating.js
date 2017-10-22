@@ -5,9 +5,9 @@ var RetroUserRating = function() {
     this.questionId = undefined;
     this.userId = undefined;
     this.ratedUserId = undefined;
-    this.rating = undefined;
-    this.createdAt = new Date().toISOString();
-    this.updatedAt = new Date().toISOString();
+    this.rating = null;
+    this.createdAt = new Date();
+    this.updatedAt = new Date();
 };
 
 RetroUserRating.prototype.setRetroId = function (retroId) {
@@ -50,5 +50,22 @@ RetroUserRating.prototype.setRating = function (rating) {
     this.rating = rating;
 };
 
+RetroUserRating.prototype.getCreatedAt = function () {
+    return this.createdAt;
+};
+
+RetroUserRating.prototype.getUpdatedAt = function () {
+    return this.updatedAt;
+};
+
+RetroUserRating.prototype.valuesToArray = function () {
+    var arrayOfValues = [];
+    for (var property in this) {
+        if(this.hasOwnProperty(property) && this[property] !== undefined) {
+            arrayOfValues.push(this[property]);
+        }
+    }
+    return arrayOfValues;
+};
 
 module.exports = RetroUserRating;

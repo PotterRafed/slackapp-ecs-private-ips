@@ -16,6 +16,7 @@
     "express": "^4.15.2",
     "mysql": "^2.14.1",
     "request": "^2.81.0",
+    "step": "^1.0.0",
     "yaml-config": "^0.3.0"
   },
   "devDependencies": {

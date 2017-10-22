@@ -21,9 +21,9 @@ var NewSprintHeroController = function() {
 NewSprintHeroController.prototype.handle = function () {
 
 
-    var participants = ["333", "111", "222"];
+    var participants = ["111", "222", "333"];
     var noVoters = ["333"];
-    var sprintName = "CHKT 2017.05";
+    var retroName = "CHKT 2017.05";
 
     var owner = "MaryAnne";
     var ownerId = '5214';
@@ -39,7 +39,7 @@ NewSprintHeroController.prototype.handle = function () {
     var votingHandler = new VotingHandler();
 
     //First init
-    votingHandler.init(sprintName, owner, ownerId, participants, noVoters);
+    votingHandler.init(retroName, owner, ownerId, participants, noVoters);
 
 
     // //Second init (when the sprint exists)
