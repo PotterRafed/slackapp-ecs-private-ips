@@ -45,13 +45,14 @@ ParameterHandler.prototype.initParams = function (commandText) {
         if (this.parameters.hasOwnProperty(paramName)) {
             var parameter = this.parameters[paramName];
 
-            var match = commandText.match(parameter.getFullCommand() + '="(.*?)"');
+            var match = commandText.match(parameter.getFullCommand() + ' (.*?)( |$)');
+            console.log(match);
 
             if (match !== null) {
                 parameter.setValue(match[1]);
             } else {
                 //Try with the short command
-                match = commandText.match(parameter.getShortCommand() + '="(.*?)"');
+                match = commandText.match(parameter.getShortCommand() + ' (.*?)( |$)');
                 if (match !== null) {
                     parameter.setValue(match[1]);
                 }
@@ -75,6 +76,11 @@ ParameterHandler.prototype.getParam = function (parameterName) {
     }
 };
 
+/**
+ * Returns an object which has the parameter name as property and the value
+ * of the parameter as value
+ * @returns {{}}
+ */
 ParameterHandler.prototype.getAllParams = function () {
     var allParams = {};
     for (var paramName in this.parameters) {
